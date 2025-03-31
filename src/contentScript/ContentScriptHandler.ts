@@ -221,8 +221,8 @@ export class GamePadController {
       $key.textContent = shortkey;
       $key.dataset.shortkey = shortkey;
       const rect = $link.getBoundingClientRect();
-      $key.style.left = rect.x - 6 + 'px';
-      $key.style.top = rect.y - 6 + 'px';
+      $key.style.left = Math.max(rect.x - 6, 0) + 'px';
+      $key.style.top = Math.max(rect.y - 6, 0) + 'px';
       this.highlightCanvas.appendChild($key);
     });
   }
