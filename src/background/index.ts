@@ -1,4 +1,4 @@
 import { BackgroundController } from "./BackgroundController";
-console.log('background is running')
+console.log('background is running');  
 new BackgroundController();
 

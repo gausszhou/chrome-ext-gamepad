@@ -1,39 +1,14 @@
-import { PageController } from './PageController';
-
-enum EnumButtonCode {
-
-  DPAD_UP = 'DPAD_UP',
-  DPAD_DOWN = 'DPAD_DOWN',
-  DPAD_LEFT = 'DPAD_LEFT',
-  DPAD_RIGHT = 'DPAD_RIGHT',
-
-  A = 'A',
-  B = 'B',
-  X = 'X',
-  Y = 'Y',
-
-  LEFT = 'L',
-  RIGHT = 'R',
-  LEFT_TRIGGER = 'ZL',
-  RIGHT_TRIGGER = 'ZR',
-
-  LEFT_STICK = 'LS',
-  RIGHT_STICK = 'RS',
-
-  BACK = 'BACK',
-  START = 'START',
-  HOME = 'HOME',
-}
+import { EnumButtonCode, EnumTabAction } from '../enums'
+import { PageController } from './PageController'
 
 const BUTTON_MAP: Record<number, EnumButtonCode> = {
-
   0: EnumButtonCode.A,
   1: EnumButtonCode.B,
   2: EnumButtonCode.X,
   3: EnumButtonCode.Y,
 
-  4: EnumButtonCode.LEFT,
-  5: EnumButtonCode.RIGHT,
+  4: EnumButtonCode.LEFT_BUMPER,
+  5: EnumButtonCode.RIGHT_BUMPER,
 
   6: EnumButtonCode.LEFT_TRIGGER,
   7: EnumButtonCode.RIGHT_TRIGGER,
@@ -49,8 +24,9 @@ const BUTTON_MAP: Record<number, EnumButtonCode> = {
   14: EnumButtonCode.DPAD_LEFT,
   15: EnumButtonCode.DPAD_RIGHT,
 
-  16: EnumButtonCode.HOME
-};
+  16: EnumButtonCode.HOME,
+}
+
 interface GamepadState {
   readonly buttons: GamepadButton[]
   axes: number[]
@@ -59,8 +35,6 @@ interface GamepadState {
 }
 
 const pageController = new PageController()
-
-console.log(pageController)
 
 export class GamePadController {
   gamepads: Map<number, GamepadState> = new Map()
@@ -95,8 +69,6 @@ export class GamePadController {
 
   startPolling() {
     if (this.isPolling) return false
-    console.log('startPolling')
-
     this.isPolling = true
     const poll = () => {
       const gamepads = navigator.getGamepads()
@@ -116,9 +88,10 @@ export class GamePadController {
   processGamepads(gamepads: (Gamepad | null)[]) {
     for (const gamepad of gamepads) {
       if (!gamepad || !this.gamepads.has(gamepad.index)) continue
-
       this.checkButtons(gamepad)
       this.checkAxes(gamepad)
+      // 更新按钮状态
+      this.gamepads.set(gamepad.index, this.getGamePadState(gamepad))
     }
   }
 
@@ -126,21 +99,17 @@ export class GamePadController {
   checkButtons(gamepad: Gamepad) {
     const oldState = this.gamepads.get(gamepad.index)
     gamepad.buttons.forEach((button, index) => {
-      const oldButton = oldState && oldState.buttons[index] || { pressed: false};
+      const oldButton = (oldState && oldState.buttons[index]) || { pressed: false }
       if (button.pressed && !oldButton.pressed) {
         console.log(`按键 ${index} 位置: ${button.value} 按下`)
         this.handleButtonDown(index)
       } else if (button.pressed && oldButton.pressed) {
-        console.log(`按键 ${index} 位置: ${button.value} 按住`)
         this.handleButtonPress(index)
       } else if (!button.pressed && oldButton.pressed) {
         console.log(`按键 ${index} 位置: ${button.value} 抬起`)
         this.handleButtonUp(index)
       }
     })
-
-    // 更新按钮状态
-    this.gamepads.set(gamepad.index, this.getGamePadState(gamepad))
   }
 
   getGamePadState(gamepad: Gamepad) {
@@ -163,26 +132,44 @@ export class GamePadController {
   }
 
   private handleButtonDown(buttonIndex: number) {
-    const buttonCode = BUTTON_MAP[buttonIndex];
+    const buttonCode = BUTTON_MAP[buttonIndex]
     switch (buttonCode) {
-      case EnumButtonCode.DPAD_UP: 
-        pageController.up()
-        break
-      case EnumButtonCode.DPAD_DOWN:
-        pageController.down()
-        break;
-      case EnumButtonCode.DPAD_LEFT: 
-        pageController.left()
-        break
-      case EnumButtonCode.DPAD_RIGHT:
-        pageController.right()
-        break
     }
   }
 
   private handleButtonPress(buttonIndex: number) {}
 
-  private handleButtonUp(buttonIndex: number) {}
+  private handleButtonUp(buttonIndex: number) {
+    const buttonCode = BUTTON_MAP[buttonIndex];
+    if (document.hidden) {
+      console.log('页面不可见');
+      // return false;
+    }
+    switch (buttonCode) {
+      case EnumButtonCode.DPAD_UP:
+        pageController.up()
+        break
+      case EnumButtonCode.DPAD_DOWN:
+        pageController.down()
+        break
+      case EnumButtonCode.DPAD_LEFT:
+        pageController.left()
+        break
+      case EnumButtonCode.DPAD_RIGHT:
+        pageController.right()
+        break
+      case EnumButtonCode.LEFT_BUMPER:
+        chrome.runtime.sendMessage({
+          type: EnumTabAction.TOGGLE_LEFT,
+        })
+        break
+      case EnumButtonCode.RIGHT_BUMPER:
+        chrome.runtime.sendMessage({
+          type: EnumTabAction.TOGGLE_RIGHT,
+        })
+        break
+    }
+  }
 }
 
 // 初始化内容脚本处理器
