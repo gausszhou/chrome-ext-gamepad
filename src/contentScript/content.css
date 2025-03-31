@@ -1,0 +1,38 @@
+.gamepad-canvas {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.gamepad-key {
+  position: absolute;
+  border-radius: 2px;
+  background: -webkit-gradient(
+    linear,
+    0% 0%,
+    0% 100%,
+    from(rgb(255, 247, 133)),
+    to(rgb(255, 197, 66))
+  );
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(227, 190, 35);
+  font-size: 12px;
+  line-height: 16px;
+  padding: 0 4px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.gamepad-key b {
+    color: #00000033;
+}
+
+.gamepad-key.gamepad-candidate-not {
+  display: none;
+}
+
