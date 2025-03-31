@@ -1,7 +1,6 @@
+import { BackgroundController } from "./BackgroundController";
 console.log('background is running')
+if(!chrome.BackgroundController) {
+    chrome.BackgroundController = new BackgroundController();
+}
 
-chrome.runtime.onMessage.addListener((request) => {
-  if (request.type === 'COUNT') {
-    console.log('background has received a message from popup, and count is ', request?.count)
-  }
-})
